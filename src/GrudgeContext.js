@@ -15,13 +15,12 @@ const reducer = (state = defaultState, action) => {
         ...action.payload
       },
       ...state.present
-    ];
-
+    ]
     return {
       past: [state.present, ...state.past],
       present: newPresent,
       future: []
-    };
+    }
   }
 
   if (action.type === GRUDGE_FORGIVE) {
@@ -36,7 +35,7 @@ const reducer = (state = defaultState, action) => {
       past: [state.present, ...state.past],
       present: newPresent,
       future: []
-    };
+    }
   }
 
   if (action.type === 'UNDO') {
@@ -45,7 +44,16 @@ const reducer = (state = defaultState, action) => {
       past: newPast,
       present: newPresent,
       future: [state.present, ...state.future]
-    };
+    }
+  }
+
+  if (action.type === 'REDO') {
+    const [newPresent, ...newFuture] = state.future;
+    return {
+      past: [state.present, ...state.past],
+      present: newPresent,
+      future: newFuture
+    }
   }
 
   return state;
@@ -59,9 +67,11 @@ const defaultState = {
 
 export const GrudgeProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, defaultState);
-  const grudges = state.present;
-  const isPast = !!state.past.length;
-  const isFuture = !!state.future.length;
+  const grudges = state.present
+  const isPast = !!state.past.length
+  const isFuture = !!state.future.length
+
+
 
   const addGrudge = useCallback(
     ({ person, reason }) => {
@@ -89,13 +99,15 @@ export const GrudgeProvider = ({ children }) => {
   );
 
   const undo = useCallback(() => {
-    dispatch({ type: 'UNDO' });
-  }, [dispatch]);
+    dispatch({ type: 'UNDO' })
+  }, [dispatch])
+
+  const redo = useCallback(() => {
+    dispatch({ type: 'REDO' })
+  }, [dispatch])
 
   return (
-    <GrudgeContext.Provider
-      value={{ grudges, addGrudge, toggleForgiveness, undo, isPast, isFuture }}
-    >
+    <GrudgeContext.Provider value={{ grudges, addGrudge, toggleForgiveness, undo, isPast, redo, isFuture }}>
       {children}
     </GrudgeContext.Provider>
   );
